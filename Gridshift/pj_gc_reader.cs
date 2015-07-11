@@ -111,26 +111,9 @@ namespace Free.Ports.Proj4.Gridshift
 		//		values are "yyyy.fraction" and "yyyy-mm-dd". Anything else
 		//		returns 0.0.
 		//***********************************************************************
-		public static double pj_gc_parsedate(projCtx ctx, string date_string) // TODO => Proj.
+		public static double pj_gc_parsedate(projCtx ctx, string date_string)
 		{
-			try
-			{
-				if(date_string.Length==10&&date_string[4]=='-'&&date_string[7]=='-')
-				{
-					int year=int.Parse(date_string.Substring(0, 4));
-					int month=int.Parse(date_string.Substring(5, 2));
-					int day=int.Parse(date_string.Substring(8, 2));
-
-					// simplified calculation so we don't need to know all about months
-					return year+((month-1)*31+(day-1))/372.0;
-				}
-
-				return double.Parse(date_string); // TDO neutral culture?
-			}
-			catch
-			{
-				return 0;
-			}
+			return Proj.pj_parsedate(ctx, date_string);
 		}
 
 		//***********************************************************************

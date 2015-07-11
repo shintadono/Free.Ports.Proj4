@@ -106,6 +106,7 @@
     <Compile Include="FactorsDeriv\pj_deriv.cs" />
     <Compile Include="Misc\pj_gauss.cs" />
     <Compile Include="Misc\pj_mdist.cs" />
+    <Compile Include="Misc\pj_parsedate.cs" />
     <Compile Include="Misc\pj_phi2.cs" />
     <Compile Include="Misc\pj_tsfn.cs" />
     <Compile Include="Projections\pj_calcofi.cs" />

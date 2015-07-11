@@ -88,7 +88,7 @@ namespace Free.Ports.Proj4
 				if(pj_param_t(pj_in.ctx, pj_in.parameters, "b")) defn+=" +b="+pj_param_s(pj_in.ctx, pj_in.parameters, "b");
 				else if(pj_param_t(pj_in.ctx, pj_in.parameters, "es")) defn+=" +es="+pj_param_s(pj_in.ctx, pj_in.parameters, "es");
 				else if(pj_param_t(pj_in.ctx, pj_in.parameters, "f")) defn+=" +f="+pj_param_s(pj_in.ctx, pj_in.parameters, "f");
-				else defn+=" +es="+pj_in.es.ToString("G16");
+				else defn+=" +es="+pj_in.es.ToString("G16", nc);
 			}
 			else
 			{
