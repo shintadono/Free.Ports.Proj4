@@ -210,7 +210,7 @@ namespace Free.Ports.Proj4
 			//		Do we need to translate from geoid to ellipsoidal vertical
 			//		datum?
 			// --------------------------------------------------------------------
-			if(srcdefn.has_geoid_vgrids)
+			if(srcdefn.has_geoid_vgrids&&z!=null)
 			{
 				if(Grid.pj_apply_vgridshift(srcdefn, "geoidgrids", ref srcdefn.vgridlist_geoid, ref srcdefn.vgridlist_geoid_count, false, point_count, point_offset, x, y, z)!=0)
 					return pj_ctx_get_errno(srcdefn.ctx);
@@ -229,7 +229,7 @@ namespace Free.Ports.Proj4
 			//		Do we need to translate from geoid to ellipsoidal vertical
 			//		datum?
 			// --------------------------------------------------------------------
-			if(dstdefn.has_geoid_vgrids)
+			if(dstdefn.has_geoid_vgrids&&z!=null)
 			{
 				if(Grid.pj_apply_vgridshift(dstdefn, "geoidgrids", ref dstdefn.vgridlist_geoid, ref dstdefn.vgridlist_geoid_count, true, point_count, point_offset, x, y, z)!=0)
 					return dstdefn.ctx.last_errno;
