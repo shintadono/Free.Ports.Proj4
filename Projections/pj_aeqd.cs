@@ -48,7 +48,6 @@ namespace Free.Ports.Proj4.Projections
 
 		const double EPS10=1.0e-10;
 		const double TOL=1.0e-14;
-		const double RHO=57.295779513082320876798154814105;
 
 		public override string Name { get { return "aeqd"; } }
 		public override string DescriptionName { get { return "Azimuthal Equidistant"; } }
@@ -114,15 +113,15 @@ namespace Free.Ports.Proj4.Projections
 						break;
 					}
 
-					double phi1=phi0*RHO;
-					double lam1=lam0*RHO;
-					double phi2=lp.phi*RHO;
-					double lam2=(lp.lam+lam0)*RHO;
+					double phi1=phi0*Proj.DEG_TO_RAD;
+					double lam1=lam0*Proj.DEG_TO_RAD;
+					double phi2=lp.phi*Proj.DEG_TO_RAD;
+					double lam2=(lp.lam+lam0)*Proj.DEG_TO_RAD;
 
 					double azi1, azi2, s12;
 					g.geod_inverse(phi1, lam1, phi2, lam2, out s12, out azi1, out azi2);
 					
-					azi1/=RHO;
+					azi1/=Proj.DEG_TO_RAD;
 					xy.x=s12*Math.Sin(azi1)/a;
 					xy.y=s12*Math.Cos(azi1)/a;
 					break;
@@ -221,16 +220,16 @@ namespace Free.Ports.Proj4.Projections
 			{
 				double x2=xy.x*a;
 				double y2=xy.y*a;
-				double lat1=phi0*RHO;
-				double lon1=lam0*RHO;
-				double azi1=Math.Atan2(x2, y2)*RHO;
+				double lat1=phi0*Proj.DEG_TO_RAD;
+				double lon1=lam0*Proj.DEG_TO_RAD;
+				double azi1=Math.Atan2(x2, y2)*Proj.DEG_TO_RAD;
 				double s12=Math.Sqrt(x2*x2+y2*y2);
 
 				double lat2, lon2, azi2;
 				g.geod_direct(lat1, lon1, azi1, s12, out lat2, out lon2, out azi2);
 				
-				lp.phi=lat2/RHO;
-				lp.lam=lon2/RHO;
+				lp.phi=lat2/Proj.DEG_TO_RAD;
+				lp.lam=lon2/Proj.DEG_TO_RAD;
 				lp.lam-=lam0;
 			}
 			else

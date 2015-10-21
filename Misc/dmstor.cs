@@ -6,7 +6,7 @@ namespace Free.Ports.Proj4
 	{
 		static readonly double[] vm = new double[]
 		{
-			0.0174532925199433,
+			DEG_TO_RAD,
 			0.0002908882086657216,
 			0.0000048481368110953599
 		};

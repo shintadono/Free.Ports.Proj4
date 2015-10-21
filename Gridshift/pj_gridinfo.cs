@@ -819,74 +819,69 @@ namespace Free.Ports.Proj4.Gridshift
 			// --------------------------------------------------------------------
 			//		Load a header, to determine the file type.
 			// --------------------------------------------------------------------
-			byte[] header=new byte[160];
-
 			try
 			{
+				byte[] header=new byte[160];
+
 				if(fp.Read(header, 0, header.Length)!=header.Length)
 				{
-					fp.Close();
-					header=null;
-					Proj.pj_ctx_set_errno(ctx, -38);
-					return gilist;
+					// some files may be smaller that sizeof(header), eg 160, so
+					ctx.last_errno = 0; // don't treat as a persistent error
+				}
+
+				fp.Seek(0, SeekOrigin.Begin);
+
+				// --------------------------------------------------------------------
+				//		Determine file type.
+				// --------------------------------------------------------------------
+				if(Encoding.ASCII.GetString(header, 0, 6)=="HEADER"&&
+					Encoding.ASCII.GetString(header, 96, 6)=="W GRID"&&
+					Encoding.ASCII.GetString(header, 144, 16)=="TO      NAD83   ")
+				{
+					pj_gridinfo_init_ntv1(ctx, fp, gilist);
+				}
+				else if(Encoding.ASCII.GetString(header, 0, 8)=="NUM_OREC"&&
+					Encoding.ASCII.GetString(header, 48, 7)=="GS_TYPE")
+				{
+					pj_gridinfo_init_ntv2(ctx, fp, gilist);
+				}
+				else if(gridname.Length>4&&gridname.EndsWith("gtx", StringComparison.CurrentCultureIgnoreCase))
+				{
+					pj_gridinfo_init_gtx(ctx, fp, gilist);
+				}
+				else if(Encoding.ASCII.GetString(header, 0, 9)=="CTABLE V2")
+				{
+					CTABLE ct=nad_ctable2_init(ctx, fp);
+
+					gilist.format="ctable2";
+					gilist.ct=ct;
+
+					Proj.pj_log(ctx, PJ_LOG.DEBUG_MAJOR, "Ctable2 {0} {1}x{2}: LL=({3},{4}) UR=({5},{6})",
+						ct.id, ct.lim.lam, ct.lim.phi, ct.ll.lam*Proj.RAD_TO_DEG, ct.ll.phi*Proj.RAD_TO_DEG,
+						(ct.ll.lam+(ct.lim.lam-1)*ct.del.lam)*Proj.RAD_TO_DEG, (ct.ll.phi+(ct.lim.phi-1)*ct.del.phi)*Proj.RAD_TO_DEG);
+				}
+				else
+				{
+					CTABLE ct=nad_ctable_init(ctx, fp);
+
+					if(ct==null)
+					{
+						Proj.pj_log(ctx, PJ_LOG.DEBUG_MAJOR, "CTABLE ct is NULL.");
+					}
+					else
+					{
+						gilist.format="ctable";
+						gilist.ct=ct;
+
+						Proj.pj_log(ctx, PJ_LOG.DEBUG_MAJOR, "Ctable {0} {1}x{2}: LL=({3},{4}) UR=({5},{6})",
+							ct.id, ct.lim.lam, ct.lim.phi, ct.ll.lam*Proj.RAD_TO_DEG, ct.ll.phi*Proj.RAD_TO_DEG,
+							(ct.ll.lam+(ct.lim.lam-1)*ct.del.lam)*Proj.RAD_TO_DEG, (ct.ll.phi+(ct.lim.phi-1)*ct.del.phi)*Proj.RAD_TO_DEG);
+					}
 				}
 			}
 			catch
 			{
-				fp.Close();
-				header=null;
 				Proj.pj_ctx_set_errno(ctx, -38);
-				return gilist;
-			}
-
-			fp.Seek(0, SeekOrigin.Begin);
-
-			// --------------------------------------------------------------------
-			//		Determine file type.
-			// --------------------------------------------------------------------
-			if(Encoding.ASCII.GetString(header, 0, 6)=="HEADER"&&
-				Encoding.ASCII.GetString(header, 96, 6)=="W GRID"&&
-				Encoding.ASCII.GetString(header, 144, 16)=="TO      NAD83   ")
-			{
-				pj_gridinfo_init_ntv1(ctx, fp, gilist);
-			}
-			else if(Encoding.ASCII.GetString(header, 0, 8)=="NUM_OREC"&&
-				Encoding.ASCII.GetString(header, 48, 7)=="GS_TYPE")
-			{
-				pj_gridinfo_init_ntv2(ctx, fp, gilist);
-			}
-			else if(gridname.Length>4&&gridname.EndsWith("gtx", StringComparison.CurrentCultureIgnoreCase))
-			{
-				pj_gridinfo_init_gtx(ctx, fp, gilist);
-			}
-			else if(Encoding.ASCII.GetString(header, 0, 9)=="CTABLE V2")
-			{
-				CTABLE ct=nad_ctable2_init(ctx, fp);
-
-				gilist.format="ctable2";
-				gilist.ct=ct;
-
-				Proj.pj_log(ctx, PJ_LOG.DEBUG_MAJOR, "Ctable2 {0} {1}x{2}: LL=({3},{4}) UR=({5},{6})",
-					ct.id, ct.lim.lam, ct.lim.phi, ct.ll.lam*Proj.RAD_TO_DEG, ct.ll.phi*Proj.RAD_TO_DEG,
-					(ct.ll.lam+(ct.lim.lam-1)*ct.del.lam)*Proj.RAD_TO_DEG, (ct.ll.phi+(ct.lim.phi-1)*ct.del.phi)*Proj.RAD_TO_DEG);
-			}
-			else
-			{
-				CTABLE ct=nad_ctable_init(ctx, fp);
-
-				if(ct==null)
-				{
-					Proj.pj_log(ctx, PJ_LOG.DEBUG_MAJOR, "CTABLE ct is NULL.");
-				}
-				else
-				{
-					gilist.format="ctable";
-					gilist.ct=ct;
-
-					Proj.pj_log(ctx, PJ_LOG.DEBUG_MAJOR, "Ctable {0} {1}x{2}: LL=({3},{4}) UR=({5},{6})",
-						ct.id, ct.lim.lam, ct.lim.phi, ct.ll.lam*Proj.RAD_TO_DEG, ct.ll.phi*Proj.RAD_TO_DEG,
-						(ct.ll.lam+(ct.lim.lam-1)*ct.del.lam)*Proj.RAD_TO_DEG, (ct.ll.phi+(ct.lim.phi-1)*ct.del.phi)*Proj.RAD_TO_DEG);
-				}
 			}
 
 			fp.Close();

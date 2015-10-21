@@ -9,7 +9,7 @@ namespace Free.Ports.Proj4
 		// RES is fractional second figures
 		// RES60 = 60 * RES
 		// CONV = 180 * 3600 * RES / PI (radians to RES seconds)
-		static double RES=1000.0, RES60=60000.0, CONV=206264806.24709635515796003417;
+		static double RES=1000.0, RES60=60000.0, CONV=206264806.24709635516;
 
 		static string format="{0}d{1}'{2:0.###}\"{3}";
 		static bool dolong=false;

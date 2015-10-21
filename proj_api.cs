@@ -34,8 +34,8 @@ namespace Free.Ports.Proj4
 		// Try to update this every version!
 		public const int PJ_VERSION=491;
 
-		public const double RAD_TO_DEG=57.29577951308232;
-		public const double DEG_TO_RAD=0.0174532925199432958;
+		public const double RAD_TO_DEG=57.295779513082321;
+		public const double DEG_TO_RAD=0.017453292519943296;
 
 		const double EPS7=1.0e-7;
 		const double EPS11=1.0e-11;
