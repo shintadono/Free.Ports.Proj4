@@ -34,6 +34,7 @@
 // Division, Kort og Matrikelstyrelsen (KMS), Copenhagen, Denmark
 
 using System;
+using System.Text;
 using Free.Ports.Proj4.LibcStuff;
 
 namespace Free.Ports.Proj4.Projections
@@ -210,7 +211,8 @@ namespace Free.Ports.Proj4.Projections
 			return lp;
 		}
 
-		public override PJ Init()
+		// general initialization
+		protected PJ_etmerc setup()
 		{
 			if(es<=0) { Proj.pj_ctx_set_errno(ctx, -34); return null; }
 
@@ -284,6 +286,65 @@ namespace Free.Ports.Proj4.Projections
 			fwd=e_forward;
 
 			return this;
+		}
+
+		public override PJ Init()
+		{
+			return setup();
+		}
+	}
+
+	class PJ_utm : PJ_etmerc
+	{
+		public override string Name { get { return "utm"; } }
+		public override string DescriptionName { get { return "Universal Transverse Mercator (UTM)"; } }
+		public override string DescriptionParameters { get { return "zone= south"; } }
+
+		protected override string Proj4ParameterString
+		{
+			get
+			{
+				StringBuilder ret = new StringBuilder();
+
+				int zone = (int)Math.Floor((Proj.adjlon(lam0) + Proj.PI) * 30.0 / Proj.PI);
+				if (zone < 0) zone = 0;
+				else if (zone >= 60) zone = 59;
+
+				ret.AppendFormat(" +zone={0}", zone + 1);
+
+				if (y0 == 10000000.0) ret.Append(" +south");
+				return ret.ToString();
+			}
+		}
+
+		// utm uses etmerc for the underlying projection
+		public override PJ Init()
+		{
+			if (es == 0) { Proj.pj_ctx_set_errno(ctx, -34); return null; }
+
+			y0 = Proj.pj_param_b(ctx, parameters, "south") ? 10000000.0 : 0.0;
+			x0 = 500000.0;
+
+			int zone;
+
+			if (Proj.pj_param_t(ctx, parameters, "zone")) // zone input ?
+			{
+				zone = Proj.pj_param_i(ctx, parameters, "zone");
+				if (zone > 0 && zone <= 60) zone--;
+				else { Proj.pj_ctx_set_errno(ctx, -35); return null; }
+			}
+			else // nearest central meridian input
+			{
+				zone = (int)Math.Floor((Proj.adjlon(lam0) + Proj.PI) * 30.0 / Proj.PI);
+				if (zone < 0) zone = 0;
+				else if (zone >= 60) zone = 59;
+			}
+
+			lam0 = (zone + 0.5) * Proj.PI / 30.0 - Proj.PI;
+			k0 = 0.9996;
+			phi0 = 0.0;
+
+			return setup();
 		}
 	}
 }
