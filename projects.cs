@@ -27,6 +27,7 @@
 // DEALINGS IN THE SOFTWARE.
 //*****************************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -37,16 +38,16 @@ namespace Free.Ports.Proj4
 	public static partial class Proj
 	{
 		// some useful constants
-		internal const double HALFPI=1.5707963267948966;
-		internal const double FORTPI=0.78539816339744833;
-		internal const double PI=3.14159265358979323846;
-		internal const double TWOPI=6.2831853071795864769;
+		internal const double HALFPI = 1.5707963267948966;
+		internal const double FORTPI = 0.78539816339744833;
+		internal const double PI = 3.14159265358979323846;
+		internal const double TWOPI = 6.2831853071795864769;
 
 		// environment parameter name
-		const string PROJ_LIB="PROJ_LIB";
+		const string PROJ_LIB = "PROJ_LIB";
 
 		// directory delimiter for DOS support
-		const char DIR_CHAR='\\';
+		const char DIR_CHAR = '\\';
 		//const char DIR_CHAR='/';
 	}
 
@@ -64,20 +65,20 @@ namespace Free.Ports.Proj4
 	// datum_type values
 	public enum PJD
 	{
-		UNKNOWN=0,
-		_3PARAM=1,
-		_7PARAM=2,
-		GRIDSHIFT=3,
-		WGS84=4,		// WGS84 (or anything considered equivelent)
+		UNKNOWN = 0,
+		_3PARAM = 1,
+		_7PARAM = 2,
+		GRIDSHIFT = 3,
+		WGS84 = 4,		// WGS84 (or anything considered equivelent)
 	}
 
 	enum PJD_ERR
 	{
 		// library errors
-		GEOCENTRIC=-45,
-		AXIS=-47,
-		GRID_AREA=-48,
-		CATALOG=-49,
+		GEOCENTRIC = -45,
+		AXIS = -47,
+		GRID_AREA = -48,
+		CATALOG = -49,
 	}
 
 	public struct projUV
@@ -86,13 +87,30 @@ namespace Free.Ports.Proj4
 
 		public static implicit operator XY(projUV a)
 		{
-			XY ret; ret.x=a.u; ret.y=a.v;
+			XY ret; ret.x = a.u; ret.y = a.v;
 			return ret;
 		}
 
 		public static implicit operator LP(projUV a)
 		{
-			LP ret; ret.lam=a.u; ret.phi=a.v;
+			LP ret; ret.lam = a.u; ret.phi = a.v;
+			return ret;
+		}
+	}
+
+	public struct projUVW
+	{
+		public double u, v, w;
+
+		public static implicit operator XYZ(projUVW a)
+		{
+			XYZ ret; ret.x = a.u; ret.y = a.v; ret.z = a.w;
+			return ret;
+		}
+
+		public static implicit operator LPZ(projUVW a)
+		{
+			LPZ ret; ret.lam = a.u; ret.phi = a.v; ret.z = a.w;
 			return ret;
 		}
 	}
@@ -103,7 +121,18 @@ namespace Free.Ports.Proj4
 
 		public static implicit operator projUV(XY a)
 		{
-			projUV ret; ret.u=a.x; ret.v=a.y;
+			projUV ret; ret.u = a.x; ret.v = a.y;
+			return ret;
+		}
+	}
+
+	public struct XYZ
+	{
+		public double x, y, z;
+
+		public static implicit operator projUVW(XYZ a)
+		{
+			projUVW ret; ret.u = a.x; ret.v = a.y; ret.w = a.z;
 			return ret;
 		}
 	}
@@ -122,7 +151,28 @@ namespace Free.Ports.Proj4
 
 		public static implicit operator projUV(LP a)
 		{
-			projUV ret; ret.u=a.lam; ret.v=a.phi;
+			projUV ret; ret.u = a.lam; ret.v = a.phi;
+			return ret;
+		}
+	}
+
+	public struct LPZ
+	{
+		/// <summary>
+		/// Longitude
+		/// </summary>
+		public double lam;
+
+		/// <summary>
+		/// Latitude
+		/// </summary>
+		public double phi;
+
+		public double z;
+
+		public static implicit operator projUVW(LPZ a)
+		{
+			projUVW ret; ret.u = a.lam; ret.v = a.phi; ret.w = a.z;
 			return ret;
 		}
 	}
@@ -130,14 +180,13 @@ namespace Free.Ports.Proj4
 	// base projection data structure
 	public abstract class PJ
 	{
-		internal static CultureInfo nc=new CultureInfo("");
-
-		public delegate XY XY_LP_PJ(LP lp);
-		public delegate LP LP_XY_PJ(XY xy);
+		internal static CultureInfo nc = new CultureInfo("");
 
 		public projCtx ctx;
-		public XY_LP_PJ fwd;
-		public LP_XY_PJ inv;
+		public Func<LP, XY> fwd;
+		public Func<XY, LP> inv;
+		public Func<LPZ, XYZ> fwd3d;
+		public Func<XYZ, LPZ> inv3d;
 
 		public abstract string Name { get; }
 		public abstract string DescriptionName { get; }
@@ -148,23 +197,23 @@ namespace Free.Ports.Proj4
 		protected virtual string Proj4ParameterString { get { return ""; } }
 		public virtual string ToProj4String()
 		{
-			StringBuilder ret=new StringBuilder();
+			StringBuilder ret = new StringBuilder();
 			ret.Append("+proj=").Append(Name);
 
-			ret.AppendFormat(nc, " +lon_0={0}", lam0*Proj.RAD_TO_DEG);
-			ret.AppendFormat(nc, " +lat_0={0}", phi0*Proj.RAD_TO_DEG);
+			ret.AppendFormat(nc, " +lon_0={0}", lam0 * Proj.RAD_TO_DEG);
+			ret.AppendFormat(nc, " +lat_0={0}", phi0 * Proj.RAD_TO_DEG);
 			ret.AppendFormat(nc, " +x_0={0}", x0);
 			ret.AppendFormat(nc, " +y_0={0}", y0);
-			if(k0!=1.0) ret.AppendFormat(nc, " +k_0={0}", k0);
+			if (k0 != 1.0) ret.AppendFormat(nc, " +k_0={0}", k0);
 
 			ret.Append(Proj4ParameterString);
 
 			ret.AppendFormat(nc, " +a={0}", a_orig);
 			ret.AppendFormat(nc, " +es={0}", es_orig);
 
-			const double SEC_TO_RAD=4.84813681109535993589914102357e-6;
+			const double SEC_TO_RAD = 4.84813681109535993589914102357e-6;
 
-			switch(datum_type)
+			switch (datum_type)
 			{
 				default:
 				case PJD.UNKNOWN: break;
@@ -174,16 +223,16 @@ namespace Free.Ports.Proj4
 				case PJD._7PARAM:
 					ret.AppendFormat(nc, " +towgs84={0},{1},{2},{3},{4},{5},{6}",
 						datum_params[0], datum_params[1], datum_params[2],
-						datum_params[3]/SEC_TO_RAD, datum_params[4]/SEC_TO_RAD, datum_params[5]/SEC_TO_RAD,
-						(datum_params[6]-1)*1000000);
+						datum_params[3] / SEC_TO_RAD, datum_params[4] / SEC_TO_RAD, datum_params[5] / SEC_TO_RAD,
+						(datum_params[6] - 1) * 1000000);
 					break;
 				case PJD._3PARAM:
 					ret.AppendFormat(nc, " +towgs84={0},{1},{2}", datum_params[0], datum_params[1], datum_params[2]);
 					break;
 				case PJD.GRIDSHIFT:
-					foreach(string p in parameters)
+					foreach (string p in parameters)
 					{
-						if(p.Length>9&&p.StartsWith("nadgrids="))
+						if (p.Length > 9 && p.StartsWith("nadgrids="))
 						{
 							ret.Append(" +nadgrids=").Append(p.Substring(9));
 							break;
@@ -192,15 +241,15 @@ namespace Free.Ports.Proj4
 					break;
 			}
 
-			if(to_meter!=1.0) ret.AppendFormat(nc, " +to_meter={0}", to_meter);
-			if(vto_meter!=1.0) ret.AppendFormat(nc, " +vto_meter={0}", vto_meter);
-			if(from_greenwich!=0.0) ret.AppendFormat(nc, " +pm={0}", from_greenwich);
+			if (to_meter != 1.0) ret.AppendFormat(nc, " +to_meter={0}", to_meter);
+			if (vto_meter != 1.0) ret.AppendFormat(nc, " +vto_meter={0}", vto_meter);
+			if (from_greenwich != 0.0) ret.AppendFormat(nc, " +pm={0}", from_greenwich);
 
-			if(is_long_wrap_set) ret.AppendFormat(nc, " +lon_wrap={0}", long_wrap_center*Proj.RAD_TO_DEG);
-			if(axis!="enu") ret.Append(" +axis=").Append(axis);
+			if (is_long_wrap_set) ret.AppendFormat(nc, " +lon_wrap={0}", long_wrap_center * Proj.RAD_TO_DEG);
+			if (axis != "enu") ret.Append(" +axis=").Append(axis);
 
-			if(geoc) ret.Append(" +geoc");
-			if(over) ret.Append(" +over");
+			if (geoc) ret.Append(" +geoc");
+			if (over) ret.Append(" +over");
 
 			return ret.ToString();
 		}
@@ -225,7 +274,7 @@ namespace Free.Ports.Proj4
 			to_meter, fr_meter;	// cartesian scaling
 
 		public PJD datum_type;			// PJD.UNKNOWN/_3PARAM/_7PARAM/GRIDSHIFT/WGS84
-		public double[] datum_params=new double[7];
+		public double[] datum_params = new double[7];
 		public PJ_GRIDINFO[] gridlist;
 		public int gridlist_count;
 		public bool has_geoid_vgrids;

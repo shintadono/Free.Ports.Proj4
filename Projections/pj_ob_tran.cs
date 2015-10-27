@@ -160,12 +160,12 @@ namespace Free.Ports.Proj4.Projections
 				cphip=Math.Cos(phip);
 				sphip=Math.Sin(phip);
 				fwd=o_forward;
-				inv=link.inv!=null?o_inverse:(LP_XY_PJ)null;
+				inv=link.inv!=null?o_inverse:(Func<XY, LP>)null;
 			}
 			else
 			{ // transverse
 				fwd=t_forward;
-				inv=link.inv!=null?t_inverse:(LP_XY_PJ)null;
+				inv=link.inv!=null?t_inverse:(Func<XY, LP>)null;
 			}
 
 			return this;

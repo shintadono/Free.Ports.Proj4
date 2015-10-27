@@ -109,8 +109,11 @@
     <Compile Include="Misc\pj_parsedate.cs" />
     <Compile Include="Misc\pj_phi2.cs" />
     <Compile Include="Misc\pj_tsfn.cs" />
+    <Compile Include="pj_fwd3d.cs" />
+    <Compile Include="pj_inv3d.cs" />
     <Compile Include="Projections\pj_calcofi.cs" />
     <Compile Include="Projections\pj_qsc.cs" />
+    <Compile Include="Projections\pj_sch.cs" />
     <Compile Include="WKT\WKTNode.cs" />
     <Compile Include="Gridshift\pj_apply_vgridshift.cs" />
     <Compile Include="pj_ctx.cs" />

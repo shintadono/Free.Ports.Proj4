@@ -203,6 +203,7 @@ namespace Free.Ports.Proj4
 				case 's':
 					switch(name)
 					{
+						case "sch": return new PJ_sch();
 						case "sinu": return new PJ_sinu();
 						case "somerc": return new PJ_somerc();
 						case "stere": return new PJ_stere();

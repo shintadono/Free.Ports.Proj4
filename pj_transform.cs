@@ -156,9 +156,10 @@ namespace Free.Ports.Proj4
 			//		Transform source points to lat/long, if they aren't
 			//		already.
 			// --------------------------------------------------------------------
-			else if(!srcdefn.is_latlong)
+			else if (!srcdefn.is_latlong)
 			{
-				if(srcdefn.inv==null)
+				// Check first if projection is invertible.
+				if (srcdefn.inv3d == null && srcdefn.inv == null)
 				{
 					pj_ctx_set_errno(pj_get_ctx(srcdefn), -17);
 #if DEBUG
@@ -168,29 +169,74 @@ namespace Free.Ports.Proj4
 					return -17;
 				}
 
-				for(int i=0; i<point_count; i++)
+				// If invertible - First try inv3d if defined
+				if (srcdefn.inv3d != null)
 				{
-					XY projected_loc;
-					LP geodetic_loc;
-
-					projected_loc.x=x[point_offset*i];
-					projected_loc.y=y[point_offset*i];
-
-					if(projected_loc.x==Libc.HUGE_VAL) continue;
-
-					geodetic_loc=pj_inv(projected_loc, srcdefn);
-					if(srcdefn.ctx.last_errno!=0)
+					// Three dimensions must be defined
+					if (z == null)
 					{
-						if((srcdefn.ctx.last_errno!=(int)ERRORNUMBER.EDOM&&srcdefn.ctx.last_errno!=(int)ERRORNUMBER.ERANGE)&&
-							(srcdefn.ctx.last_errno>0||srcdefn.ctx.last_errno<-49||point_count==1||transient_error[-srcdefn.ctx.last_errno]==0))
-							return srcdefn.ctx.last_errno;
-
-						geodetic_loc.lam=Libc.HUGE_VAL;
-						geodetic_loc.phi=Libc.HUGE_VAL;
+						pj_ctx_set_errno(pj_get_ctx(srcdefn), (int)PJD_ERR.GEOCENTRIC);
+						return (int)PJD_ERR.GEOCENTRIC;
 					}
 
-					x[point_offset*i]=geodetic_loc.lam;
-					y[point_offset*i]=geodetic_loc.phi;
+					for (int i = 0; i < point_count; i++)
+					{
+						XYZ projected_loc;
+						LPZ geodetic_loc;
+
+						projected_loc.x = x[point_offset * i];
+						projected_loc.y = y[point_offset * i];
+						projected_loc.z = z[point_offset * i];
+
+						if (projected_loc.x== Libc.HUGE_VAL)
+							continue;
+
+						geodetic_loc = pj_inv3d(projected_loc, srcdefn);
+						if (srcdefn.ctx.last_errno != 0)
+						{
+							if ((srcdefn.ctx.last_errno != (int)ERRORNUMBER.EDOM && srcdefn.ctx.last_errno != (int)ERRORNUMBER.ERANGE) &&
+								(srcdefn.ctx.last_errno > 0 || srcdefn.ctx.last_errno < -44 || point_count == 1 || transient_error[-srcdefn.ctx.last_errno] == 0))
+								return srcdefn.ctx.last_errno;
+							else
+							{
+								geodetic_loc.lam = Libc.HUGE_VAL;
+								geodetic_loc.phi = Libc.HUGE_VAL;
+								geodetic_loc.z = Libc.HUGE_VAL;
+							}
+						}
+
+						x[point_offset * i] = geodetic_loc.lam;
+						y[point_offset * i] = geodetic_loc.phi;
+						z[point_offset * i] = geodetic_loc.z;
+					}
+				}
+				else
+				{
+					// Fallback to the original PROJ.4 API 2d inversion- inv 
+					for (int i = 0; i < point_count; i++)
+					{
+						XY projected_loc;
+						LP geodetic_loc;
+
+						projected_loc.x = x[point_offset * i];
+						projected_loc.y = y[point_offset * i];
+
+						if (projected_loc.x == Libc.HUGE_VAL) continue;
+
+						geodetic_loc = pj_inv(projected_loc, srcdefn);
+						if (srcdefn.ctx.last_errno != 0)
+						{
+							if ((srcdefn.ctx.last_errno != (int)ERRORNUMBER.EDOM && srcdefn.ctx.last_errno != (int)ERRORNUMBER.ERANGE) &&
+								(srcdefn.ctx.last_errno > 0 || srcdefn.ctx.last_errno < -49 || point_count == 1 || transient_error[-srcdefn.ctx.last_errno] == 0))
+								return srcdefn.ctx.last_errno;
+
+							geodetic_loc.lam = Libc.HUGE_VAL;
+							geodetic_loc.phi = Libc.HUGE_VAL;
+						}
+
+						x[point_offset * i] = geodetic_loc.lam;
+						y[point_offset * i] = geodetic_loc.phi;
+					}
 				}
 			}
 
@@ -277,32 +323,68 @@ namespace Free.Ports.Proj4
 			//		Transform destination points to projection coordinates, if
 			//		desired.
 			// --------------------------------------------------------------------
-			else if(!dstdefn.is_latlong)
+			else if (!dstdefn.is_latlong)
 			{
-				for(int i=0; i<point_count; i++)
+				if (dstdefn.fwd3d != null)
 				{
-					XY projected_loc;
-					LP geodetic_loc;
-
-					geodetic_loc.lam=x[point_offset*i];
-					geodetic_loc.phi=y[point_offset*i];
-
-					if(geodetic_loc.lam==Libc.HUGE_VAL) continue;
-
-					projected_loc=pj_fwd(geodetic_loc, dstdefn);
-					if(dstdefn.ctx.last_errno!=0)
+					for (int i = 0; i < point_count; i++)
 					{
-						if((dstdefn.ctx.last_errno!=(int)ERRORNUMBER.EDOM&&dstdefn.ctx.last_errno!=(int)ERRORNUMBER.ERANGE)&&
-							(dstdefn.ctx.last_errno>0||dstdefn.ctx.last_errno<-49||point_count==1||transient_error[-dstdefn.ctx.last_errno]==0))
-							return dstdefn.ctx.last_errno;
+						XYZ projected_loc;
+						LPZ geodetic_loc;
 
-						projected_loc.x=Libc.HUGE_VAL;
-						projected_loc.y=Libc.HUGE_VAL;
+						geodetic_loc.lam = x[point_offset * i];
+						geodetic_loc.phi = y[point_offset * i];
+						geodetic_loc.z = z[point_offset * i];
 
+						if (geodetic_loc.lam == Libc.HUGE_VAL)
+							continue;
+
+						projected_loc = pj_fwd3d(geodetic_loc, dstdefn);
+						if (dstdefn.ctx.last_errno != 0)
+						{
+							if ((dstdefn.ctx.last_errno != (int)ERRORNUMBER.EDOM && dstdefn.ctx.last_errno != (int)ERRORNUMBER.ERANGE) &&
+								(dstdefn.ctx.last_errno > 0 || dstdefn.ctx.last_errno < -44 || point_count == 1 || transient_error[-dstdefn.ctx.last_errno] == 0))
+								return dstdefn.ctx.last_errno;
+							else
+							{
+								projected_loc.x = Libc.HUGE_VAL;
+								projected_loc.y = Libc.HUGE_VAL;
+								projected_loc.z = Libc.HUGE_VAL;
+							}
+						}
+
+						x[point_offset * i] = projected_loc.x;
+						y[point_offset * i] = projected_loc.y;
+						z[point_offset * i] = projected_loc.z;
 					}
+				}
+				else
+				{
+					for (int i = 0; i < point_count; i++)
+					{
+						XY projected_loc;
+						LP geodetic_loc;
 
-					x[point_offset*i]=projected_loc.x;
-					y[point_offset*i]=projected_loc.y;
+						geodetic_loc.lam = x[point_offset * i];
+						geodetic_loc.phi = y[point_offset * i];
+
+						if (geodetic_loc.lam == Libc.HUGE_VAL) continue;
+
+						projected_loc = pj_fwd(geodetic_loc, dstdefn);
+						if (dstdefn.ctx.last_errno != 0)
+						{
+							if ((dstdefn.ctx.last_errno != (int)ERRORNUMBER.EDOM && dstdefn.ctx.last_errno != (int)ERRORNUMBER.ERANGE) &&
+								(dstdefn.ctx.last_errno > 0 || dstdefn.ctx.last_errno < -49 || point_count == 1 || transient_error[-dstdefn.ctx.last_errno] == 0))
+								return dstdefn.ctx.last_errno;
+
+							projected_loc.x = Libc.HUGE_VAL;
+							projected_loc.y = Libc.HUGE_VAL;
+
+						}
+
+						x[point_offset * i] = projected_loc.x;
+						y[point_offset * i] = projected_loc.y;
+					}
 				}
 			}
 
@@ -310,14 +392,14 @@ namespace Free.Ports.Proj4
 			//		If a wrapping center other than 0 is provided, rewrap around
 			//		the suggested center (for latlong coordinate systems only).
 			// --------------------------------------------------------------------
-			else if(dstdefn.is_latlong&&dstdefn.is_long_wrap_set)
+			else if (dstdefn.is_latlong && dstdefn.is_long_wrap_set)
 			{
-				for(int i=0; i<point_count; i++)
+				for (int i = 0; i < point_count; i++)
 				{
-					if(x[point_offset*i]==Libc.HUGE_VAL) continue;
+					if (x[point_offset * i] == Libc.HUGE_VAL) continue;
 
-					while(x[point_offset*i]<dstdefn.long_wrap_center-PI) x[point_offset*i]+=TWOPI;
-					while(x[point_offset*i]>dstdefn.long_wrap_center+PI) x[point_offset*i]-=TWOPI;
+					while (x[point_offset * i] < dstdefn.long_wrap_center - PI) x[point_offset * i] += TWOPI;
+					while (x[point_offset * i] > dstdefn.long_wrap_center + PI) x[point_offset * i] -= TWOPI;
 				}
 			}
 

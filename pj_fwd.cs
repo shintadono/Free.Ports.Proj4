@@ -30,15 +30,23 @@ namespace Free.Ports.Proj4
 			lp.lam-=P.lam0; // compute del lp.lam
 			if(!P.over) lp.lam=adjlon(lp.lam); // adjust del longitude
 
-			xy=P.fwd(lp); // project
-			if(P.ctx.last_errno!=0)
+			// Check for NULL pointer
+			if (P.fwd != null)
 			{
-				xy.x=xy.y=Libc.HUGE_VAL;
+				xy = P.fwd(lp); // project
+				if (P.ctx.last_errno != 0)
+				{
+					xy.x = xy.y = Libc.HUGE_VAL;
+				}
+				else // adjust for major axis and easting/northings
+				{
+					xy.x = P.fr_meter * (P.a * xy.x + P.x0);
+					xy.y = P.fr_meter * (P.a * xy.y + P.y0);
+				}
 			}
-			else // adjust for major axis and easting/northings
+			else
 			{
-				xy.x=P.fr_meter*(P.a*xy.x+P.x0);
-				xy.y=P.fr_meter*(P.a*xy.y+P.y0);
+				xy.x = xy.y = Libc.HUGE_VAL;
 			}
 
 			if(pj_errno==0) pj_errno=Libc.errno;
