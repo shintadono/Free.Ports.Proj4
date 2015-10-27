@@ -39,16 +39,16 @@ namespace Free.Ports.Proj4.ComplexPoly
 		public COMPLEX pj_zpolyd1(COMPLEX[] C, int n, out COMPLEX der)
 		{
 			int C_ind=n;
-			COMPLEX a=C[C_ind], b=new COMPLEX();
-			bool first=true;
-
 			double t;
-			while((n--)>0)
+			bool first = true;
+
+			COMPLEX a = C[C_ind];
+			COMPLEX b = a;
+			while ((n--) > 0)
 			{
 				if(first)
 				{
 					first=false;
-					b=a;
 				}
 				else
 				{
