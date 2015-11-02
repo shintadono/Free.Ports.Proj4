@@ -95,8 +95,8 @@ namespace Free.Ports.Proj4
 			// Convert geocentric coordinates to lat lon
 			elp_0.pj_Convert_Geocentric_To_Geodetic(pxyz0, pxyz1, pxyz2, out temp0, out temp1, out temp2);
 
-			lpz.lam = temp0;
-			lpz.phi = temp1;
+			lpz.lam = temp1;
+			lpz.phi = temp0;
 			lpz.z = temp2;
 
 			//printf("INVERSE: \n");
@@ -113,7 +113,7 @@ namespace Free.Ports.Proj4
 			double temp0, temp1, temp2;
 
 			// Convert lat lon to geocentric coordinates
-			if (elp_0.pj_Convert_Geodetic_To_Geocentric(lpz.lam, lpz.phi, lpz.z, out temp0, out temp1, out temp2) != 0) { Proj.pj_ctx_set_errno(ctx, -20); return xyz; }
+			if (elp_0.pj_Convert_Geodetic_To_Geocentric(lpz.phi, lpz.lam, lpz.z, out temp0, out temp1, out temp2) != 0) { Proj.pj_ctx_set_errno(ctx, -20); return xyz; }
 
 			// Adjust for offset
 			temp0 -= xyzoff[0];
