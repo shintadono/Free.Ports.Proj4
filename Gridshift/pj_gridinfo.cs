@@ -29,7 +29,6 @@
 //*****************************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Free.Ports.Proj4.LibcStuff;
@@ -43,7 +42,8 @@ namespace Free.Ports.Proj4.Gridshift
 
 		public string format;		// format of this grid, ie "ctable", "ntv1", "ntv2" or "missing".
 
-		public long grid_offset;	// offset in file, for delayed loading
+		public long grid_offset;    // offset in file, for delayed loading
+		public bool must_swap;		// only for NTv2
 
 		public CTABLE ct;
 
@@ -60,8 +60,23 @@ namespace Free.Ports.Proj4.Gridshift
 		//
 		//		Convert the byte order of the given word(s) in place.
 		//**********************************************************************
-		//static int byte_order_test=1;
-		static bool IS_LSB=true;//	(1 == ((unsigned char *) (&byte_order_test))[0])
+		#region #define IS_LSB	(1 == ((unsigned char *) (&byte_order_test))[0])
+		/// <summary>
+		/// Helper, used to check byte-order and to initialize <see cref="IsLittleEndian"/>.
+		/// </summary>
+		/// <returns><c>true</c> for little-endian. <c>false</c> for big-endian.</returns>
+		static unsafe bool GetIsLittleEndian()
+		{
+			ushort us = 0xFF00;
+			byte* b = (byte*)&us;
+			return b[0] == 0;
+		}
+
+		/// <summary>
+		/// Indicates the byte-order used in this computer architecture.
+		/// </summary>
+		static readonly bool IS_LSB = GetIsLittleEndian();
+		#endregion
 
 		static void swap_words(byte[] data, int word_size, int word_count)
 		{
@@ -303,7 +318,7 @@ namespace Free.Ports.Proj4.Gridshift
 							return false;
 						}
 
-						if(!IS_LSB) swap_words(row_buf, 4, gi.ct.lim.lam*4);
+						if(gi.must_swap) swap_words(row_buf, 4, gi.ct.lim.lam*4);
 
 						// convert seconds to radians
 						int diff_seconds=0;
@@ -421,6 +436,7 @@ namespace Free.Ports.Proj4.Gridshift
 		static bool pj_gridinfo_init_ntv2(projCtx ctx, FileStream fid, PJ_GRIDINFO gilist)
 		{
 			byte[] header=new byte[11*16];
+			bool must_swap;
 
 			// --------------------------------------------------------------------
 			//		Read the overview header.
@@ -441,10 +457,15 @@ namespace Free.Ports.Proj4.Gridshift
 				return false;
 			}
 
+			if (header[8] == 11)
+				must_swap = !IS_LSB;
+			else
+				must_swap = IS_LSB;
+
 			// --------------------------------------------------------------------
 			//		Byte swap interesting fields if needed.
 			// --------------------------------------------------------------------
-			if(!IS_LSB)
+			if (must_swap)
 			{
 				swap_words(header, 8, 4, 1);
 				swap_words(header, 8+16, 4, 1);
@@ -493,7 +514,7 @@ namespace Free.Ports.Proj4.Gridshift
 				// --------------------------------------------------------------------
 				//		Byte swap interesting fields if needed.
 				// --------------------------------------------------------------------
-				if(!IS_LSB)
+				if(must_swap)
 				{
 					swap_words(header, 8+16*4, 8, 1);
 					swap_words(header, 8+16*5, 8, 1);
@@ -559,6 +580,7 @@ namespace Free.Ports.Proj4.Gridshift
 					gi.next=null;
 				}
 
+				gi.must_swap = must_swap;
 				gi.ct=ct;
 				gi.format="ntv2";
 				gi.grid_offset=fid.Position;
