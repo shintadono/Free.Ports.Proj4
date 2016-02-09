@@ -126,7 +126,11 @@ namespace Free.Ports.Proj4.Gridshift
 					value=cvs1.lam*(1.0-grid_x)*(1.0-grid_y)+cvs1.phi*grid_x*(1.0-grid_y)+
 							cvs2.lam*(1.0-grid_x)*grid_y+cvs2.phi*grid_x*grid_y;
 
-					if(Math.Abs(value+88.8888)<0.0001) value=Libc.HUGE_VAL; // nodata?
+					// nodata?
+					// GTX official nodata value is -88.88880f, but some grids also
+					// use other big values for nodata (e.g naptrans2008.gtx has
+					// nodata values like -2147479936), so test them too
+					if (value > 1000 || value < -1000 || Math.Abs(value+88.8888)<0.0001) value=Libc.HUGE_VAL;
 					else
 					{
 						if(inverse) z[io]-=value;
