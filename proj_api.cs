@@ -32,7 +32,7 @@ namespace Free.Ports.Proj4
 	public static partial class Proj
 	{
 		// Try to update this every version!
-		public const int PJ_VERSION=491;
+		public const int PJ_VERSION=493;
 
 		public const double RAD_TO_DEG=57.295779513082321;
 		public const double DEG_TO_RAD=0.017453292519943296;
