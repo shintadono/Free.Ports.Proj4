@@ -140,6 +140,7 @@ namespace Free.Ports.Proj4
 						case "merc": return new PJ_merc();
 						case "mil_os": return new PJ_mil_os();
 						case "mill": return new PJ_mill();
+						case "misrsom": return new PJ_misrsom();
 						case "moll": return new PJ_moll();
 						case "murd1": return new PJ_murd1();
 						case "murd2": return new PJ_murd2();
