@@ -31,7 +31,16 @@ namespace Free.Ports.Proj4
 {
 	public static partial class Proj
 	{
-		// Try to update this every version!
+		// This version number should be updated with every release! The format of
+		// PJ_VERSION is
+		//
+		// * Before version 4.10.0: PJ_VERSION=MNP where M, N, and P are the major,
+		//   minor, and patch numbers; e.g., PJ_VERSION=493 for version 4.9.3.
+		//
+		// * Version 4.10.0 and later: PJ_VERSION=MMMNNNPP later where MMM, NNN, PP
+		//   are the major, minor, and patch numbers (the minor and patch numbers
+		//   are padded with leading zeros if necessary); e.g., PJ_VERSION=401000
+		//   for version 4.10.0.
 		public const int PJ_VERSION=493;
 
 		public const double RAD_TO_DEG=57.295779513082321;
