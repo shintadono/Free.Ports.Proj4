@@ -172,6 +172,7 @@ namespace Free.Ports.Proj4
 				case 'p':
 					switch(name)
 					{
+						case "patterson": return new PJ_patterson();
 						case "pconic": return new PJ_pconic();
 						case "poly": return new PJ_poly();
 						case "putp1": return new PJ_putp1();

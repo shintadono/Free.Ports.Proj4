@@ -113,6 +113,7 @@
     <Compile Include="pj_inv3d.cs" />
     <Compile Include="Projections\pj_calcofi.cs" />
     <Compile Include="Projections\pj_misrsom.cs" />
+    <Compile Include="Projections\pj_patterson.cs" />
     <Compile Include="Projections\pj_qsc.cs" />
     <Compile Include="Projections\pj_sch.cs" />
     <Compile Include="WKT\WKTNode.cs" />
