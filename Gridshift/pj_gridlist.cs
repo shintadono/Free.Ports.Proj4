@@ -176,7 +176,7 @@ namespace Free.Ports.Proj4.Gridshift
 					Proj.pj_errno=0;
 				}
 
-				return null;
+				return gridlist;
 			}
 		}
 	}

@@ -505,7 +505,7 @@ namespace Free.Ports.Proj4.Gridshift
 					return false;
 				}
 
-				if(Encoding.ASCII.GetString(header, 0, 8).StartsWith("SUB_NAME"))
+				if(!Encoding.ASCII.GetString(header, 0, 8).StartsWith("SUB_NAME"))
 				{
 					Proj.pj_ctx_set_errno(ctx, -38);
 					return false;
