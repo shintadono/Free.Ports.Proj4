@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Free Framework")]
-[assembly: AssemblyCopyright("Copyright © 2008-2016 by the Authors. No rights reserved.")]
+[assembly: AssemblyCopyright("Copyright © 2008-2017 by the Authors. No rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]
